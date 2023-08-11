@@ -1,0 +1,117 @@
+create database company;
+use company;
+
+create table department(
+dno int,
+dname varchar(20),
+mgrssn int,
+mgrstartdate date,
+primary key(dno)
+);
+create table employee(
+ssn int,
+name varchar(20),
+address varchar(20),
+sex enum('m','f'),
+salary int(10),
+superssn int,
+dno int,
+foreign key(dno) references department(dno),
+primary key(ssn)
+);
+
+create table dlocation(
+dno int,
+dloc int,
+primary key(dno,dloc)
+);
+
+create table project(
+pno int,
+pname varchar(20),
+plocation varchar(20),
+dno int,
+foreign key(dno) references department(dno),
+primary key(pno)
+);
+
+create table works_on(
+ssn int,
+pno int,
+hours int,
+primary key(ssn,pno,hours)
+);
+
+insert into department values(200,'iot',300,'2020-01-01'),(201,'z',301,'2021-01-01'),(202,'y',302,'2022-01-01'),
+(203,'x',303,'2019-01-01'),(204,'w',304,'2018-01-01');
+
+insert into employee values(100,'scott','bangalore','m',500000,103,200),(101,'abc','mangalore','f',600000,102,201),
+(102,'def','udupi','m',700000,103,203),(103,'ghi','hubli','f',800000,102,204),(104,'jkl','dharwad','m',850000,103,202);
+insert into employee values(105,'scott','mangalore','m',600000,104,201);
+insert into employee values(106,'set','mangalore','m',600000,104,203),(107,'test','mangalore','m',500000,104,203);
+
+insert into dlocation values(200,999),(201,998),(202,997),(203,996),(204,995);
+
+insert into project values(1,'a1b1','bangalore',200),(2,'a2b2','mangalore',201),(3,'a3b3','udupi',202),(4,'a4b4','hubli',203),(5,'a5b5','dharwad',204);
+insert into project values(6,'a6b6','bangalore',203);
+insert into works_on values(100,1,5),(101,2,6),(102,3,7),(103,4,8),(104,5,9);
+
+(select distinct a.pno
+from project a, employee b, department d
+where b.ssn = d.mgrssn and a.dno = b.dno and name = 'scott')
+union
+(select distinct p.pno
+from project p, employee e, works_on w
+where p.pno = w.pno and e.ssn = w.ssn and name = 'scott');
+
+select distinct a.name, a.ssn, a.salary+0.1*a.salary as ten_percent_increment
+from employee a, department d
+where a.dno = (select dno 
+				from department
+				where dname = 'iot');
+
+select sum(a.salary) as total_salary, min(a.salary) as minimum_salary, max(a.salary) as max_salary
+from employee a
+where a.dno = (select dno
+				from department 
+                where dname = 'x');
+                
+
+
+
+//q4
+
+select pno 
+from project
+where dno = 203;
+
+
+select * from project;
+select * from employee;
+select * from works_on;
+
+insert into works_on values(107, 6,10);
+insert into works_on values(107, 4,10);
+
+
+
+
+select a.name
+from employee a
+where not exists
+(select pno
+from project 
+where dno = 203 AND pno NOT IN(select pno
+						from works_on
+                        where a.ssn = ssn));
+
+select a.dno, count(*)
+from department a, employee b
+where a.dno = b.dno and b.salary > 600000
+and a.dno in (select dno 
+				from employee
+                group by dno
+                having count(*) > 2)
+group by a.dno;
+
+

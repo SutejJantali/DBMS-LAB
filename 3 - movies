@@ -1,0 +1,91 @@
+create database movie;
+
+use movie;
+
+create table actor(
+act_id int,
+act_name varchar(20),
+act_gender enum('m','f'),
+primary key(act_id)
+);
+
+create table director(
+dir_id int,
+dir_name varchar(20),
+dir_phone int(11),
+primary key(dir_id)
+);
+
+create table movies(
+mov_id int,
+mov_title varchar(20),
+mov_year date,
+mov_lang varchar(10),
+dir_id int,
+foreign key(dir_id) references director(dir_id),
+primary key(mov_id)
+);
+
+create table movie_cast(
+act_id int,
+mov_id int,
+role varchar(20),
+primary key(act_id,mov_id)
+);
+
+create table rating(
+mov_id int,
+rev_stars int,
+primary key(mov_id)
+);
+
+insert into actor values(100,'raj','m'),(101,'leela','f'),(102,'rishab','m'),(103,'vinod','m'),(104,'riya','f');
+
+insert into director values(200,'aman',996662247),(201,'piyush',657894213),(202,'namitha',664559884),(203,'ashneer',664559874),(204,'anupam',664488557);
+
+insert into movies values(300,'abc','2012-01-01','kan',200),(301,'def','2013-03-02','eng',202),
+(302,'ghi','2006-05-01','tel',201),(303,'jkl','2003-03-01','tam',203),(304,'mno','2004-04-01','hin',204);
+
+insert into movie_cast values(101,302,'lead'),(100,301,'side'),(102,303,'supportive'),(103,300,'villain'),(104,304,'side');
+insert into movie_cast values(102,302,'lead'),(103,303,'villain');
+insert into rating values(300,2),(301,5),(302,4),(303,3),(304,1);
+
+
+select a.mov_title
+from movies a
+where a.dir_id = (select d.dir_id
+					from director d
+					where dir_name = 'aman');
+
+select mov_title
+from movies a, movie_cast b
+where a.mov_id = b.mov_id and act_id in (select act_id
+											from movie_cast 
+                                            group by act_id
+                                            having count(act_id)>1
+										);
+
+select a.act_id,a.act_name
+from actor a
+join movie_cast c on a.act_id = c.act_id
+join movies m on c.mov_id = m.mov_id
+where m.mov_year not between '2015-01-01' and '2000-01-01';
+
+select a.mov_title, b.rev_stars
+from movies a, rating b
+where a.mov_id = b.mov_id
+order by a.mov_title;
+
+select a.mov_title, b.rev_stars
+from movies a 
+join rating b on a.mov_id = b.mov_id
+order by a.mov_title;
+
+
+update rating 
+set rev_stars = 5
+where mov_id = (select a.mov_id
+				from movies a
+                where a.dir_id = (select b.dir_id
+								  from director b
+                                  where dir_name = 'aman'));

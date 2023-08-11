@@ -1,0 +1,84 @@
+create database sales;
+
+use sales;
+
+create table salesman(
+salesman_id int,
+name varchar(20),
+city varchar(10),
+commission int(4),
+primary key(salesman_id)
+);
+
+create table customer(
+customer_id int,
+cust_name varchar(20),
+city varchar(10),
+grade int,
+salesman_id int,
+foreign key(salesman_id) references salesman(salesman_id) on delete cascade,
+primary key(customer_id)
+);
+
+create table orders(
+ord_no int,
+purchase_amt int(4),
+ord_date date,
+customer_id int,
+salesman_id int,
+foreign key(customer_id) references customer(customer_id) on delete cascade,
+foreign key(salesman_id) references salesman(salesman_id) on delete cascade,
+primary key(ord_no)
+);
+
+insert into salesman values(100,'ram','bangalore',500),(101,'shyam','mangalore',510),
+(102,'raj','bidar',300),(103,'aman','udupi',250),(104,'aditya','hubli',600);
+
+insert into customer values(200,'abc','bangalore',6,100),(201,'def','raichur',5,101),
+(202,'ghi','hubli',8,103),(203,'jkl','udupi',7,104);
+insert into customer values(205,'xyz','bangalore',6,100);
+
+insert into customer values(204,'mno','kalaburagi',4,102);
+insert into orders values(300,3000,'2020-01-01',200,100);
+insert into orders values(301,3500,'2020-02-01',201,101);
+insert into orders values(302,4000,'2020-03-01',203,104);
+insert into orders values(303,4500,'2020-04-01',202,103);
+insert into orders values(304,5000,'2020-05-01',204,102);
+
+
+select count(distinct a.customer_id), a.grade
+from customer a
+group by grade
+having a.grade > (select avg(grade)
+				from customer
+                where city = 'bangalore');
+			
+
+select a.name,a.salesman_id
+from salesman a
+where 1 < (select count(*)
+			from customer b
+            where a.salesman_id = b.salesman_id);
+            
+ select * from salesman;
+ select * from customer;           
+select a.salesman_id, a.name, a.city
+from salesman a, customer b
+where a.city = b.city
+union
+select salesman_id, name, 'NO MATCH'
+from salesman 
+where not city= any(select city from customer b);
+
+create view v as
+select a.salesman_id, a.purchase_amt, a.customer_id, a.ord_date, b.cust_name 
+from orders a, customer b
+where a.salesman_id = b.salesman_id
+and a.purchase_amt = (select max(c.purchase_amt)
+					from orders c);
+ 
+select * from v;
+                   
+                   
+delete from salesman
+where salesman_id = 100;

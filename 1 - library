@@ -1,0 +1,125 @@
+show databases;
+
+create database library;
+
+use library;
+
+create table book(
+book_id int,
+title varchar(20),
+publisher_name varchar(20),
+pub_year date,
+primary key (book_id)
+);
+
+create table book_authors(
+book_id int,
+author_name varchar(20),
+primary key (author_name),
+foreign key(book_id) references book(book_id) on delete cascade
+);
+
+create table publisher(
+pub_id int,
+nam varchar(20),
+address varchar(40),
+phone int(10),
+primary key(pub_id)
+);
+
+create table book_copies(
+book_id int,
+branch_id int(4),
+no_of_copies int(5),
+foreign key(book_id) references book(book_id) on delete cascade,
+primary key(branch_id)
+);
+
+create table book_lending(
+book_id int,
+branch_id int(4),
+card_no int(4),
+date_out date,
+due_date date,
+foreign key(book_id) references book(book_id) on delete cascade,
+foreign key(branch_id) references book_copies(branch_id) on delete cascade
+);
+
+create table library_branch(
+branch_id int(4),
+branch_name varchar(20),
+address varchar(40),
+foreign key(branch_id) references book_copies(branch_id) on delete cascade
+);
+
+
+
+select a.book_id, a.title, a.publisher_name, b.author_name, c.no_of_copies
+from book a, book_authors b, book_copies c
+where a.book_id = b.book_id and a.book_id = c.book_id and b.book_id = c.book_id;
+
+
+INSERT INTO publisher VALUES (300,'MCGRAW-HILL','BANGALORE', 998866448);
+INSERT INTO publisher VALUES (301,'PEARSON','NEWDELHI', 988907656);
+INSERT INTO publisher VALUES (302,'RANDOM HOUSE','HYDRABAD', 789203533);
+INSERT INTO publisher VALUES (303,'HACHETTE LIVRE','CHENAI',897086234);
+INSERT INTO publisher VALUES (304,'GRUPOPLANETA','BANGALORE',775612023);
+
+insert into book values(100,'xyz','someone','2019-02-20'),
+(101,'abc','none','2019-05-20'),
+(102,'def','happy','2019-06-20'),
+(103,'ghi','sad','2019-07-20'),
+(104,'jkl','sorrow','2019-07-20');
+
+insert into book_authors values(100,'raj'),
+(101,'rajesh'),
+(102,'sakshat'),
+(103,'shyam'),
+(104,'jay');
+
+insert into book_copies values(100,200,500),(101,201,510),(102,202,515),(103,203,520),(104,204,525);
+
+insert into book_lending values(100,200,300,'2019-05-20','2019-04-20'),
+(101,201,301,'2019-06-20','2019-05-20'),
+(102,202,302,'2019-07-20','2019-06-20'),
+(103,203,303,'2019-08-20','2019-07-20'),
+(104,204,304,'2019-09-20','2019-08-20');
+
+insert into book_lending values (104,204,304,'2019-02-20','2019-01-20'),
+(104,204,304,'2019-03-01','2019-02-10'),(104,204,304,'2019-04-01','2019-03-10');
+insert into book_lending values (104,204,304,'2019-02-19','2019-01-22');
+
+insert into library_branch values(200,'shilong','meghalaya'),
+(201,'agartala','tripura'),
+(202,'aizwal','mizoram'),
+(203,'guwahati','assam'),
+(204,'itanagar','ap');
+
+select a.book_id, a.title, a.publisher_name, b.author_name, c.no_of_copies
+from book a, book_authors b, book_copies c
+where a.book_id = b.book_id and a.book_id = c.book_id;
+
+select * from book_lending;
+select card_no 
+from book_lending
+where date_out between '2019-01-22' and '2019-09-20' 
+group by card_no having count(*) > 3;
+
+delete from book 
+where book_id = 100;
+
+select * from book;
+
+create view v as 
+select pub_year,title
+from book
+order by pub_year;
+
+select * from v;
+
+create view v1 as
+select b.book_id, b.publisher_name, c.no_of_copies
+from book b, book_copies c, library_branch l
+where b.book_id = c.book_id and c.branch_id = l.branch_id;
+
+select * from v1; 
